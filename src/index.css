@@ -1,0 +1,39 @@
+@import "tailwindcss/theme";
+@import "../theme.css";
+@import "tailwindcss/preflight";
+@import "tailwindcss/utilities";
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.cute-camera-outline {
+  stroke-dasharray: 220;
+  stroke-dashoffset: 220;
+  animation: cute-draw 2s ease-in-out infinite;
+}
+
+@keyframes cute-draw {
+  0% {
+    stroke-dashoffset: 220;
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 0.4;
+  }
+}

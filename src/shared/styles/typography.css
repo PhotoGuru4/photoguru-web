@@ -1,0 +1,44 @@
+:root {
+  --text-default: #ffffff;
+  --text-muted: #374151;
+  --text-primary: #1d4ed8;
+  --text-success: #15803d;
+  --text-warning: #ca8a04;
+  --text-danger: #b91c1c;
+
+  --btn-primary-bg: linear-gradient(to right, #3b82f6, #6366f1);
+  --btn-primary-bg-hover: linear-gradient(to right, #2563eb, #4f46e5);
+  --btn-secondary-bg: #e5e7eb;
+  --btn-secondary-bg-hover: #d1d5db;
+  --btn-success-bg: linear-gradient(to right, #22c55e, #16a34a);
+  --btn-success-bg-hover: linear-gradient(to right, #16a34a, #15803d);
+  --btn-warning-bg: linear-gradient(to right, #facc15, #eab308);
+  --btn-warning-bg-hover: linear-gradient(to right, #eab308, #ca8a04);
+  --btn-danger-bg: linear-gradient(to right, #f87171, #ef4444);
+  --btn-danger-bg-hover: linear-gradient(to right, #ef4444, #dc2626);
+}
+
+.text-default { color: var(--text-default); }
+.text-muted { color: var(--text-muted); }
+.text-primary { color: var(--text-primary); }
+.text-success { color: var(--text-success); }
+.text-warning { color: var(--text-warning); }
+.text-danger { color: var(--text-danger); }
+
+.bg-btn-primary { background: var(--btn-primary-bg); }
+.bg-btn-primary-hover:hover { background: var(--btn-primary-bg-hover); }
+.bg-btn-secondary { background: var(--btn-secondary-bg); }
+.bg-btn-secondary-hover:hover { background: var(--btn-secondary-bg-hover); }
+.bg-btn-success { background: var(--btn-success-bg); }
+.bg-btn-success-hover:hover { background: var(--btn-success-bg-hover); }
+.bg-btn-warning { background: var(--btn-warning-bg); }
+.bg-btn-warning-hover:hover { background: var(--btn-warning-bg-hover); }
+.bg-btn-danger { background: var(--btn-danger-bg); }
+.bg-btn-danger-hover:hover { background: var(--btn-danger-bg-hover); }
+
+@layer base {
+  .text-subtitle { font-size: var(--text-lg); line-height: var(--text-lg--line-height); font-weight: 600; }
+  .text-body { font-size: var(--text-base); line-height: var(--text-base--line-height); }
+  .text-caption { font-size: var(--text-sm); line-height: var(--text-sm--line-height); }
+  .text-small { font-size: var(--text-xs); line-height: var(--text-xs--line-height); }
+}

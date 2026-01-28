@@ -23,7 +23,6 @@ export const PaginationControl = ({
 }: Props) => {
   if (totalPages === 1) return null;
 
-  // <= 4 page → render hết
   if (totalPages <= 4) {
     return (
       <Pagination>
@@ -60,10 +59,8 @@ export const PaginationControl = ({
     );
   }
 
-  // ===== totalPages >= 5 =====
   let startPage = page - 1;
 
-  // Clamp startPage
   if (startPage < 1) startPage = 1;
   if (startPage + PAGE_WINDOW > totalPages) {
     startPage = totalPages - PAGE_WINDOW;
@@ -76,7 +73,6 @@ export const PaginationControl = ({
   return (
     <Pagination>
       <PaginationContent>
-        {/* Previous */}
         <PaginationItem>
           <PaginationPrevious
             disabled={page === 1}
@@ -84,7 +80,6 @@ export const PaginationControl = ({
           />
         </PaginationItem>
 
-        {/* 4 pages */}
         {pages.map((p) => (
           <PaginationItem key={p}>
             <PaginationLink
@@ -96,12 +91,10 @@ export const PaginationControl = ({
           </PaginationItem>
         ))}
 
-        {/* Ellipsis */}
         <PaginationItem>
           <PaginationEllipsis />
         </PaginationItem>
 
-        {/* Last page */}
         <PaginationItem>
           <PaginationLink
             isActive={page === totalPages}
@@ -111,7 +104,6 @@ export const PaginationControl = ({
           </PaginationLink>
         </PaginationItem>
 
-        {/* Next */}
         <PaginationItem>
           <PaginationNext
             disabled={page === totalPages}

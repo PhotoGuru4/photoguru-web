@@ -24,7 +24,18 @@ axiosClient.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    const isAuthRoute =
+      originalRequest?.url?.includes('/auth/login') ||
+      originalRequest?.url?.includes('/auth/refresh-token');
+
+    const hasToken = !!getAccessToken();
+
+    if (
+      error.response?.status === 401 &&
+      !originalRequest._retry &&
+      !isAuthRoute &&
+      hasToken
+    ) {
       originalRequest._retry = true;
 
       try {
@@ -33,9 +44,12 @@ axiosClient.interceptors.response.use(
           {},
           { withCredentials: true },
         );
+
         const { accessToken } = res.data.data;
+
         setAccessToken(accessToken);
         useAuthStore.getState().updateToken(accessToken);
+
         originalRequest.headers.Authorization = `Bearer ${accessToken}`;
         return axiosClient(originalRequest);
       } catch (refreshError) {
@@ -45,6 +59,7 @@ axiosClient.interceptors.response.use(
         return Promise.reject(refreshError);
       }
     }
+
     return Promise.reject(error);
   },
 );

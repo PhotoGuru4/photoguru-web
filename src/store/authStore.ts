@@ -1,9 +1,9 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { User } from '@shared/types';
-import axiosClient from '@lib/axios';
 import { removeAccessToken } from '@shared/services/tokenStorage';
 import { API_ENDPOINTS } from '@shared/constants';
+import { POST } from '@shared/services/apiService';
 
 interface AuthState {
   user: User | null;
@@ -36,7 +36,7 @@ export const useAuthStore = create<AuthState>()(
 
       logout: async () => {
         try {
-          await axiosClient.post(API_ENDPOINTS.AUTH.LOGOUT);
+          POST(API_ENDPOINTS.AUTH.LOGOUT);
         } catch (error) {
           console.error('Logout error', error);
         } finally {

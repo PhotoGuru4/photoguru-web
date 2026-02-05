@@ -1,4 +1,4 @@
-import { ROLE } from '@shared/constants/role';
+import { ROLES } from '@shared/constants/role';
 
 export interface LoginPayload {
   email: string;
@@ -8,7 +8,7 @@ export interface LoginPayload {
 export interface LoginUser {
   id: number;
   email: string;
-  role: typeof ROLE.PHOTOGRAPHER | typeof ROLE.CUSTOMER | string;
+  role: typeof ROLES.PHOTOGRAPHER | typeof ROLES.CUSTOMER | string;
 }
 
 export interface LoginResponse {

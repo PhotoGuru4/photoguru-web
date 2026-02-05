@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { getAccessToken, setAccessToken, removeAccessToken } from '@shared/services/tokenStorage';
-import { useAuthStore } from '@/store/authStore';
+import { useAuthStore } from '@store/authStore';
 import { ROUTES } from '@shared/constants/routes';
 
 const axiosClient = axios.create({
@@ -8,7 +8,7 @@ const axiosClient = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  withCredentials: true,
+  withCredentials: false,
 });
 
 axiosClient.interceptors.request.use((config) => {

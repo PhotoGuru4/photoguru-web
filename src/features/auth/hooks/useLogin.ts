@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import type { AxiosError } from 'axios';
+import { handleApiError } from '@shared/utils/error-handler';
 import React from 'react';
 
 import { showError, showSuccess } from '@shared/utils/toast';
@@ -63,15 +63,13 @@ export const useLoginForm = () => {
       },
 
       onError: (error: unknown) => {
-        let message = 'Something went wrong';
+        const message = handleApiError(error);
 
-        if (
-          typeof error === 'object' &&
-              error !== null &&
-              'response' in error
-        ) {
-          const axiosError = error as AxiosError<{ message?: string }>;
-          message = axiosError.response?.data?.message ?? message;
+        if (message.toLowerCase().includes('invalid')) {
+          setErrors({
+            email: 'Invalid email or password',
+            password: 'Invalid email or password',
+          });
         }
 
         showError(AUTH_MESSAGES.LOGIN_ERROR, message);

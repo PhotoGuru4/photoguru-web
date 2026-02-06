@@ -4,7 +4,7 @@ import { useAuthStore } from '@store/authStore';
 import { ROUTES } from '@shared/constants/routes';
 
 const axiosClient = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'https://express-api-xxuh.onrender.com/api/v1',
+  baseURL: import.meta.env.VITE_API_URL || 'https://photoguru-api.onrender.com/api/v1',
   headers: {
     'Content-Type': 'application/json',
   },

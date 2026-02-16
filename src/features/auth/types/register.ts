@@ -3,4 +3,6 @@ export interface RegisterPayload {
   password: string;
   fullName: string;
   role: string;
+  province: string;
+  ward: string;
 }

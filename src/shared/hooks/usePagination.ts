@@ -47,7 +47,7 @@ export const usePagination = <T>({
     };
 
     fetchData();
-  }, [page, perPage]);
+  }, [page, perPage, fetchFn]);
 
   return {
     items,

@@ -2,32 +2,55 @@ import { useState } from 'react';
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { validateRegisterForm } from '@shared/utils/validation/registerValidation';
+import type { RegisterFormErrors } from '@shared/utils/validation/registerValidation';
 import { showError, showSuccess } from '@shared/utils/toast';
 import { useRegisterMutation } from '@features/auth/hooks/mutations/useRegisterMutation';
 import { AUTH_MESSAGES, ROUTES } from '@shared/constants';
 import { handleApiError } from '@shared/utils/error-handler';
 
+export interface RegisterFormValues {
+  username: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+  province: string;
+  ward: string;
+}
+
 export const useRegisterForm = () => {
   const navigate = useNavigate();
 
-  const [values, setValues] = useState({
+  const [values, setValues] = useState<RegisterFormValues>({
     username: '',
     email: '',
     password: '',
     confirmPassword: '',
+    province: '',
+    ward: '',
   });
 
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [errors, setErrors] = useState<RegisterFormErrors>({});
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
   const registerMutation = useRegisterMutation();
 
   const handleChange =
-    (field: keyof typeof values) => (value: string) => {
-      setValues((prev) => ({ ...prev, [field]: value }));
+    (field: keyof RegisterFormValues) => (value: string) => {
+      setValues((prev) => {
+        if (field === 'province') {
+          return {
+            ...prev,
+            province: value,
+            ward: '',
+          };
+        }
+
+        return { ...prev, [field]: value };
+      });
+
       if (errors[field]) {
-        setErrors((prev) => ({ ...prev, [field]: '' }));
+        setErrors((prev) => ({ ...prev, [field]: undefined }));
       }
     };
 
@@ -35,7 +58,8 @@ export const useRegisterForm = () => {
     e?.preventDefault();
 
     const validationErrors = validateRegisterForm(values);
-    if (Object.keys(validationErrors).length) {
+
+    if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
       showError('Invalid form', 'Please check your input');
       return;
@@ -43,7 +67,11 @@ export const useRegisterForm = () => {
 
     registerMutation.mutate(values, {
       onSuccess: () => {
-        showSuccess(AUTH_MESSAGES.REGISTER_SUCCESS, AUTH_MESSAGES.WELCOME);
+        showSuccess(
+          AUTH_MESSAGES.REGISTER_SUCCESS,
+          AUTH_MESSAGES.WELCOME,
+        );
+
         navigate(ROUTES.LOGIN, { replace: true });
       },
       onError: (error: unknown) => {

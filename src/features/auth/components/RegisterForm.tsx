@@ -1,6 +1,8 @@
 import { useRegisterForm } from '@features/auth/hooks/useRegister';
-import { Input, Button } from '@shared/components/common';
+import { Input, Button, Text } from '@shared/components/common';
 import { Eye, EyeOff } from 'lucide-react';
+import { useProvincesQuery } from '@shared/hooks/queries/useProvincesQuery';
+import { useWardsQuery } from '@shared/hooks/queries/useWardsQuery';
 
 const RegisterForm = () => {
   const {
@@ -14,6 +16,14 @@ const RegisterForm = () => {
     setShowPassword,
     setShowConfirm,
   } = useRegisterForm();
+
+  const { data: provinces } = useProvincesQuery();
+
+  const selectedProvince = provinces?.find(
+    (p) => p.name === values.province,
+  );
+
+  const { data: wards } = useWardsQuery(selectedProvince?.code);
 
   return (
     <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
@@ -34,6 +44,65 @@ const RegisterForm = () => {
         error={errors.email}
         onChange={(e) => handleChange('email')(e.target.value)}
       />
+
+      <div className="flex gap-4">
+        <div className="flex-1 flex flex-col">
+          <label className="text-sm font-medium mb-1">
+            Province
+          </label>
+          <select
+            className="w-full px-4 py-1.5 border border-gray-300
+                      focus:ring-pink-400 rounded-lg text-xs
+                      focus:outline-none focus:ring-2
+                      truncate"
+            value={values.province || ''}
+            onChange={(e) => handleChange('province')(e.target.value)}
+          >
+            <option value="">Select province</option>
+            {provinces?.map((province) => (
+              <option key={province.code} value={province.name}>
+                {province.name}
+              </option>
+            ))}
+          </select>
+          {errors.province && (
+            <Text className="text-xs text-red-500 mt-1">
+              {errors.province}
+            </Text>
+          )}
+        </div>
+
+        <div className="flex-1 flex flex-col">
+          <label className="text-sm font-medium mb-1">
+            Ward
+          </label>
+          <select
+            disabled={!values.province}
+            className={`w-full px-4 py-1.5 border rounded-lg text-xs
+                        focus:outline-none focus:ring-2 focus:ring-pink-400
+                        truncate
+                        ${
+    values.province
+      ? 'border-gray-300 bg-white'
+      : 'border-gray-200 bg-gray-100'
+    }`}
+            value={values.ward || ''}
+            onChange={(e) => handleChange('ward')(e.target.value)}
+          >
+            <option value="">Select ward</option>
+            {wards?.map((ward) => (
+              <option key={ward.code} value={ward.name}>
+                {ward.name}
+              </option>
+            ))}
+          </select>
+          {errors.ward && (
+            <Text className="text-xs text-red-500 mt-1">
+              {errors.ward}
+            </Text>
+          )}
+        </div>
+      </div>
 
       <Input
         required

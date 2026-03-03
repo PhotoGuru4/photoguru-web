@@ -3,4 +3,7 @@ export const PAGINATION = {
     PER_PAGE: 9,
     PAGE: 1,
   },
+  CURSOR : {
+    PAGE_SIZE: 10,
+  },
 };

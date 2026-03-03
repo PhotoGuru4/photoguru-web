@@ -1,0 +1,137 @@
+import { useEffect, useState, useMemo, useCallback } from 'react';
+import {
+  collection,
+  query,
+  orderBy,
+  limit,
+  startAfter,
+  getDocs,
+  onSnapshot,
+  Timestamp,
+} from 'firebase/firestore';
+import type {
+  QueryDocumentSnapshot,
+  DocumentData,
+} from 'firebase/firestore';
+import { db } from '@lib/firebase';
+import type { Message } from '@features/chat/types/messages';
+import { MESSAGE_TYPES } from '@shared/constants/messageType';
+import { useConceptChatCardQuery } from './queries/useConceptChatCardQuery';
+import { PAGINATION } from '@shared/constants';
+
+export const useChatDetail = (roomId?: string) => {
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [lastDoc, setLastDoc] =
+    useState<QueryDocumentSnapshot<DocumentData> | null>(null);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+
+  useEffect(() => {
+    setMessages([]);
+    setLastDoc(null);
+    setHasMore(true);
+  }, [roomId]);
+
+  useEffect(() => {
+    if (!roomId) return;
+
+    const q = query(
+      collection(db, 'chatRooms', roomId, 'messages'),
+      orderBy('createdAt', 'desc'),
+      limit(PAGINATION.CURSOR.PAGE_SIZE),
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      if (snapshot.empty) {
+        setMessages([]);
+        setLastDoc(null);
+        setHasMore(false);
+        return;
+      }
+
+      const docs = snapshot.docs;
+
+      const newMessages = docs.map((doc) => {
+        const raw = doc.data({ serverTimestamps: 'estimate' });
+
+        return {
+          id: doc.id,
+          ...raw,
+          createdAt:
+            raw.createdAt instanceof Timestamp
+              ? raw.createdAt
+              : Timestamp.fromMillis(raw.createdAt ?? Date.now()),
+        } as Message;
+      });
+
+      setMessages(newMessages.reverse());
+      setLastDoc(docs[docs.length - 1]);
+      setHasMore(docs.length === PAGINATION.CURSOR.PAGE_SIZE);
+    });
+
+    return () => unsubscribe();
+  }, [roomId]);
+
+  const loadMore = useCallback(async () => {
+    if (!roomId || !hasMore || !lastDoc || loadingMore) return;
+
+    setLoadingMore(true);
+
+    const q = query(
+      collection(db, 'chatRooms', roomId, 'messages'),
+      orderBy('createdAt', 'desc'),
+      startAfter(lastDoc),
+      limit(PAGINATION.CURSOR.PAGE_SIZE),
+    );
+
+    const snapshot = await getDocs(q);
+
+    if (!snapshot.empty) {
+      const docs = snapshot.docs;
+
+      const olderMessages = docs.map((doc) => {
+        const raw = doc.data({ serverTimestamps: 'estimate' });
+
+        return {
+          id: doc.id,
+          ...raw,
+          createdAt:
+            raw.createdAt instanceof Timestamp
+              ? raw.createdAt
+              : Timestamp.fromMillis(raw.createdAt ?? Date.now()),
+        } as Message;
+      });
+
+      setMessages((prev) => [
+        ...olderMessages.reverse(),
+        ...prev,
+      ]);
+
+      setLastDoc(docs[docs.length - 1]);
+      setHasMore(docs.length === PAGINATION.CURSOR.PAGE_SIZE);
+    } else {
+      setHasMore(false);
+    }
+
+    setLoadingMore(false);
+  }, [roomId, lastDoc, hasMore, loadingMore]);
+
+  const conceptId = useMemo(() => {
+    const conceptMessage = messages.find(
+      (m) => m.type === MESSAGE_TYPES.CONCEPT,
+    );
+
+    return conceptMessage?.conceptId;
+  }, [messages]);
+
+  const { data: conceptData } =
+    useConceptChatCardQuery(conceptId);
+
+  return {
+    messages,
+    conceptData,
+    loadMore,
+    loadingMore,
+    hasMore,
+  };
+};

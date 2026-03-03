@@ -21,12 +21,12 @@ const getMonthName = (year: number, month: number) =>
   });
 
 interface Props {
-  schedules: Schedule[]
-  currentMonth: number
-  currentYear: number
-  setCurrentMonth: React.Dispatch<React.SetStateAction<number>>
-  setCurrentYear: React.Dispatch<React.SetStateAction<number>>
-  isLoading: boolean
+  schedules: Schedule[];
+  currentMonth: number;
+  currentYear: number;
+  setCurrentMonth: React.Dispatch<React.SetStateAction<number>>;
+  setCurrentYear: React.Dispatch<React.SetStateAction<number>>;
+  isLoading: boolean;
 }
 
 export const DashboardCalendar = ({
@@ -42,21 +42,20 @@ export const DashboardCalendar = ({
   const todayMonth = now.getMonth() + 1;
   const todayYear = now.getFullYear();
 
-  const daysInMonth = getDaysInMonth(
-    currentYear,
-    currentMonth,
-  );
-  const firstDay = getFirstDayOfMonth(
-    currentYear,
-    currentMonth,
-  );
+  const daysInMonth = getDaysInMonth(currentYear, currentMonth);
+  const firstDay = getFirstDayOfMonth(currentYear, currentMonth);
 
-  const scheduleMap = new Map<string, string>();
+  const scheduleMap = new Map<string, Schedule[]>();
 
   schedules.forEach((s) => {
     const d = new Date(s.date);
     const key = `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
-    scheduleMap.set(key, s.status);
+
+    if (!scheduleMap.has(key)) {
+      scheduleMap.set(key, []);
+    }
+
+    scheduleMap.get(key)!.push(s);
   });
 
   const handlePrev = () => {
@@ -80,8 +79,7 @@ export const DashboardCalendar = ({
   const weeks: (number | null)[][] = [];
   let currentWeek: (number | null)[] = [];
 
-  for (let i = 0; i < firstDay; i++)
-    currentWeek.push(null);
+  for (let i = 0; i < firstDay; i++) currentWeek.push(null);
 
   for (let day = 1; day <= daysInMonth; day++) {
     currentWeek.push(day);
@@ -92,8 +90,7 @@ export const DashboardCalendar = ({
   }
 
   if (currentWeek.length > 0) {
-    while (currentWeek.length < 7)
-      currentWeek.push(null);
+    while (currentWeek.length < 7) currentWeek.push(null);
     weeks.push(currentWeek);
   }
 
@@ -152,33 +149,67 @@ export const DashboardCalendar = ({
                   currentMonth === todayMonth &&
                   currentYear === todayYear;
 
-                const scheduleStatus =
+                const daySchedules =
                   day !== null
                     ? scheduleMap.get(
                       `${currentYear}-${currentMonth}-${day}`,
-                    )
-                    : null;
+                    ) || []
+                    : [];
+
+                const count = daySchedules.length;
+                const singleStatus =
+                  count === 1 ? daySchedules[0].status : null;
 
                 return (
                   <td key={dayIdx} className="text-center align-middle">
                     {day !== null && (
                       <span
                         className={clsx(
-                          'flex h-10 w-10 items-center justify-center rounded-full mx-auto transition-all',
-                          scheduleStatus === SCHEDULE_STATUS.COMPLETED &&
-                            'bg-green-100 text-green-600 font-semibold',
-                          scheduleStatus === SCHEDULE_STATUS.CONFIRMED &&
+                          'relative flex h-10 w-10 items-center justify-center rounded-full mx-auto transition-all',
+                          count === 1 &&
+                            singleStatus ===
+                              SCHEDULE_STATUS.CONFIRMED &&
                             'bg-yellow-100 text-yellow-600 font-semibold',
-                          scheduleStatus === SCHEDULE_STATUS.INPROGRESS &&
+                          count === 1 &&
+                            singleStatus ===
+                              SCHEDULE_STATUS.INPROGRESS &&
                             'bg-pink-100 text-pink-600 font-semibold',
+                          count === 1 &&
+                            singleStatus ===
+                              SCHEDULE_STATUS.COMPLETED &&
+                            'bg-green-100 text-green-600 font-semibold',
+                          count > 1 &&
+                            'bg-purple-100 text-purple-600 font-semibold',
                           isToday &&
-                            !scheduleStatus &&
+                            count === 0 &&
                             'border-2 border-pink-500 font-semibold',
-                          !scheduleStatus &&
+                          count === 0 &&
                             !isToday &&
                             'text-gray-700',
                         )}
                       >
+                        {count > 1 && (
+                          <div className="absolute -top-3 flex gap-1">
+                            {daySchedules.map((s, index) => (
+                              <span
+                                key={`${s.id}-${index}`}
+                                className={clsx(
+                                  'h-2 w-2 rounded-full',
+                                  s.status ===
+                                    SCHEDULE_STATUS.CONFIRMED &&
+                                    'bg-yellow-400',
+                                  s.status ===
+                                    SCHEDULE_STATUS.INPROGRESS &&
+                                    'bg-pink-400',
+                                  s.status ===
+                                    SCHEDULE_STATUS.COMPLETED &&
+                                    'bg-green-400',
+                                )}
+                              />
+                            ))}
+                          </div>
+                        )}
+
                         <Text as="span" variant="body">
                           {day}
                         </Text>
@@ -191,6 +222,28 @@ export const DashboardCalendar = ({
           ))}
         </tbody>
       </table>
+
+      <div className="mt-6 flex flex-wrap gap-6">
+        <div className="flex items-center gap-2">
+          <span className="h-4 w-4 rounded bg-yellow-100" />
+          <Text variant="caption">Pending</Text>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <span className="h-4 w-4 rounded bg-pink-100" />
+          <Text variant="caption">In Progress</Text>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <span className="h-4 w-4 rounded bg-green-100" />
+          <Text variant="caption">Completed</Text>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <span className="h-4 w-4 rounded bg-purple-100" />
+          <Text variant="caption">Multiple Schedules</Text>
+        </div>
+      </div>
     </div>
   );
 };

@@ -1,9 +1,7 @@
-import { Text } from '@shared/components/common';
+import MessagesLayout from '@features/chat/components/MessagesLayout';
 
 const Messages = () => {
-  return (
-    <Text>Messages Page</Text>
-  );
+  return <MessagesLayout />;
 };
 
 export default Messages;

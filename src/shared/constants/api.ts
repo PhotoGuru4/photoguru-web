@@ -9,4 +9,9 @@ export const API_ENDPOINTS = {
     SUMMARY: 'dashboard/photographer/summary',
     CALENDAR: 'dashboard/photographer/schedules',
   },
+  CHATROOM: {
+    CHATROOMS: '/chat-rooms',
+    CHATROOMID: (id: number) => `/chat-rooms/${id}`,
+    CHATCONCEPTCARD: (conceptId: number) => `/concepts/${conceptId}/chat-card`,
+  },
 };

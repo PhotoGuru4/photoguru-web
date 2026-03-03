@@ -35,7 +35,7 @@ const requestData = async <T, D = unknown>({
       data,
       ...config,
     });
-
+    console.log('RAW RESPONSE:', response.data);
     return extractData(response);
   } catch (error) {
     throw handleApiError(error);

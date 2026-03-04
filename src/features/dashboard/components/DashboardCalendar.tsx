@@ -189,21 +189,21 @@ export const DashboardCalendar = ({
                         )}
                       >
                         {count > 1 && (
-                          <div className="absolute -top-3 flex gap-1">
+                          <div className="absolute -bottom-3 flex gap-1">
                             {daySchedules.map((s, index) => (
                               <span
                                 key={`${s.id}-${index}`}
                                 className={clsx(
-                                  'h-2 w-2 rounded-full',
+                                  'h-1.5 w-1.5 rounded-full',
                                   s.status ===
                                     SCHEDULE_STATUS.CONFIRMED &&
-                                    'bg-yellow-400',
+                                    'bg-yellow-200',
                                   s.status ===
                                     SCHEDULE_STATUS.INPROGRESS &&
-                                    'bg-pink-400',
+                                    'bg-pink-200',
                                   s.status ===
                                     SCHEDULE_STATUS.COMPLETED &&
-                                    'bg-green-400',
+                                    'bg-green-200',
                                 )}
                               />
                             ))}
@@ -225,22 +225,22 @@ export const DashboardCalendar = ({
 
       <div className="mt-6 flex flex-wrap gap-6">
         <div className="flex items-center gap-2">
-          <span className="h-4 w-4 rounded bg-yellow-100" />
+          <span className="h-4 w-4 rounded bg-yellow-200" />
           <Text variant="caption">Pending</Text>
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="h-4 w-4 rounded bg-pink-100" />
+          <span className="h-4 w-4 rounded bg-pink-200" />
           <Text variant="caption">In Progress</Text>
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="h-4 w-4 rounded bg-green-100" />
+          <span className="h-4 w-4 rounded bg-green-200" />
           <Text variant="caption">Completed</Text>
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="h-4 w-4 rounded bg-purple-100" />
+          <span className="h-4 w-4 rounded bg-purple-200" />
           <Text variant="caption">Multiple Schedules</Text>
         </div>
       </div>

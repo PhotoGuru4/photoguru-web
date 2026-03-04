@@ -10,6 +10,7 @@ import {
 
 import { useDashboard } from '@features/dashboard/hooks/useDashboard';
 import { DEFAULT_IMAGES } from '@shared/constants';
+import { getSafeImage } from '@shared/utils/safeImage';
 
 const Home = () => {
   const {
@@ -34,11 +35,14 @@ const Home = () => {
 
         <div className="flex items-center gap-4">
           <img
-            src={
-              isError
-                ? DEFAULT_IMAGES.DEFAULT_AVATAR
-                : summary?.avatarUrl || DEFAULT_IMAGES.DEFAULT_AVATAR
-            }
+            src={getSafeImage(
+              summary?.avatarUrl,
+              DEFAULT_IMAGES.DEFAULT_AVATAR,
+            )}
+            onError={(e) => {
+              e.currentTarget.src =
+                DEFAULT_IMAGES.DEFAULT_AVATAR;
+            }}
             alt="avatar"
             className="h-12 w-12 rounded-full object-cover"
           />

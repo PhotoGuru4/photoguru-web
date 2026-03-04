@@ -13,11 +13,13 @@ import type {
   QueryDocumentSnapshot,
   DocumentData,
 } from 'firebase/firestore';
+
 import { db } from '@lib/firebase';
-import type { Message } from '@features/chat/types/messages';
+import type { Message, ConceptMessage } from '@features/chat/types/messages';
+import type { ConceptChatCard } from '@features/chat/types/conceptCard';
 import { MESSAGE_TYPES } from '@shared/constants/messageType';
-import { useConceptChatCardQuery } from './queries/useConceptChatCardQuery';
 import { PAGINATION } from '@shared/constants';
+import { useConceptChatCardQueries } from '@features/chat/hooks/queries/useConceptChatCardQuery';
 
 export const useChatDetail = (roomId?: string) => {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -116,20 +118,34 @@ export const useChatDetail = (roomId?: string) => {
     setLoadingMore(false);
   }, [roomId, lastDoc, hasMore, loadingMore]);
 
-  const conceptId = useMemo(() => {
-    const conceptMessage = messages.find(
-      (m) => m.type === MESSAGE_TYPES.CONCEPT,
+  const conceptIds = useMemo(() => {
+    return Array.from(
+      new Set(
+        messages
+          .filter(
+            (m): m is ConceptMessage =>
+              m.type === MESSAGE_TYPES.CONCEPT,
+          )
+          .map((m) => m.conceptId),
+      ),
     );
-
-    return conceptMessage?.conceptId;
   }, [messages]);
 
-  const { data: conceptData } =
-    useConceptChatCardQuery(conceptId);
+  const conceptQueries = useConceptChatCardQueries(conceptIds);
+
+  const conceptMap = useMemo(() => {
+    const map: Record<number, ConceptChatCard | undefined> = {};
+
+    conceptIds.forEach((id, index) => {
+      map[id] = conceptQueries[index]?.data;
+    });
+
+    return map;
+  }, [conceptIds, conceptQueries]);
 
   return {
     messages,
-    conceptData,
+    conceptMap,
     loadMore,
     loadingMore,
     hasMore,

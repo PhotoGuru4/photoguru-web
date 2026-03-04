@@ -7,15 +7,20 @@ import { Text } from '@shared/components/common/Text';
 interface Props {
   message: Message;
   currentUserId: number;
-  conceptData?: ConceptChatCard;
+  conceptMap: Record<number, ConceptChatCard | undefined>;
 }
 
 const MessageBubble = ({
   message,
   currentUserId,
-  conceptData,
+  conceptMap,
 }: Props) => {
   const isMe = message.senderId === currentUserId;
+
+  const concept =
+    message.type === MESSAGE_TYPES.CONCEPT
+      ? conceptMap[message.conceptId]
+      : undefined;
 
   return (
     <div
@@ -26,12 +31,11 @@ const MessageBubble = ({
       <div className="flex flex-col max-w-[65%]">
         {message.type === MESSAGE_TYPES.TEXT && (
           <div
-            className={`px-4 py-2 rounded-2xl break-all whitespace-pre-wrap
-            ${
-          isMe
-            ? 'bg-pink-500 rounded-br-md'
-            : 'bg-gray-200 rounded-bl-md'
-          }`}
+            className={`px-4 py-2 rounded-2xl break-all whitespace-pre-wrap ${
+              isMe
+                ? 'bg-pink-500 rounded-br-md'
+                : 'bg-gray-200 rounded-bl-md'
+            }`}
           >
             <Text
               variant="body"
@@ -42,8 +46,8 @@ const MessageBubble = ({
           </div>
         )}
 
-        {message.type === MESSAGE_TYPES.CONCEPT && conceptData && (
-          <ConceptCardMessage concept={conceptData} />
+        {message.type === MESSAGE_TYPES.CONCEPT && concept && (
+          <ConceptCardMessage concept={concept} />
         )}
 
         <Text

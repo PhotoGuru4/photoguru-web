@@ -4,6 +4,7 @@ import { LoadMoreDots } from '@shared/components/common/LoadMoreDots';
 import { Text } from '@shared/components/common/Text';
 import { Heading } from '@shared/components/common/Heading';
 import { DEFAULT_IMAGES } from '@shared/constants';
+import { getSafeImage } from '@shared/utils/safeImage';
 
 interface Props {
   rooms: ChatRoomListItem[];
@@ -12,6 +13,55 @@ interface Props {
   isLoading?: boolean;
 }
 
+interface ConversationItemProps {
+  room: ChatRoomListItem;
+  isActive: boolean;
+  onSelectRoom: (id: number) => void;
+}
+
+const ConversationItem = ({
+  room,
+  isActive,
+  onSelectRoom,
+}: ConversationItemProps) => {
+  return (
+    <div
+      onClick={() => onSelectRoom(room.id)}
+      className={`flex items-center gap-3 p-2 rounded-lg cursor-pointer transition ${
+        isActive ? 'bg-gray-100' : 'hover:bg-gray-50'
+      }`}
+    >
+      <img
+        src={getSafeImage(
+          room.participant.avatar,
+          DEFAULT_IMAGES.DEFAULT_AVATAR,
+        )}
+        onError={(e) => {
+          e.currentTarget.src =
+            DEFAULT_IMAGES.DEFAULT_AVATAR;
+        }}
+        className="w-10 h-10 rounded-full object-cover"
+        alt="avatar"
+      />
+
+      <div className="flex-1 min-w-0">
+        <Heading level={6} truncate>
+          {room.participant.name}
+        </Heading>
+
+        <Text variant="caption" color="muted" lineClamp={1}>
+          {room.lastMessage ?? 'Start chatting...'}
+        </Text>
+      </div>
+
+      <Text variant="small" color="muted">
+        {formatChatTime(
+          room.lastMessageTime ?? room.createdAt,
+        )}
+      </Text>
+    </div>
+  );
+};
 const ConversationList = ({
   rooms,
   activeRoomId,
@@ -24,54 +74,23 @@ const ConversationList = ({
         {isLoading ? (
           <LoadMoreDots />
         ) : rooms.length === 0 ? (
-          <Text variant="body" color="muted" align="center" className="mt-6">
+          <Text
+            variant="body"
+            color="muted"
+            align="center"
+            className="mt-6"
+          >
             No conversations
           </Text>
         ) : (
-          rooms.map((room) => {
-            const isActive = room.id === activeRoomId;
-
-            return (
-              <div
-                key={room.id}
-                onClick={() => onSelectRoom(room.id)}
-                className={`flex items-center gap-3 p-2 rounded-lg cursor-pointer transition ${
-                  isActive ? 'bg-gray-100' : 'hover:bg-gray-50'
-                }`}
-              >
-                <img
-                  src={room.participant.avatar ? room.participant.avatar : DEFAULT_IMAGES.DEFAULT_AVATAR}
-                  className="w-10 h-10 rounded-full object-cover"
-                />
-
-                <div className="flex-1 min-w-0">
-                  <Heading
-                    level={6}
-                    truncate
-                  >
-                    {room.participant.name}
-                  </Heading>
-
-                  <Text
-                    variant="caption"
-                    color="muted"
-                    lineClamp={1}
-                  >
-                    {room.lastMessage ?? 'Start chatting...'}
-                  </Text>
-                </div>
-
-                <Text
-                  variant="small"
-                  color="muted"
-                >
-                  {formatChatTime(
-                    room.lastMessageTime ?? room.createdAt,
-                  )}
-                </Text>
-              </div>
-            );
-          })
+          rooms.map((room) => (
+            <ConversationItem
+              key={room.id}
+              room={room}
+              isActive={room.id === activeRoomId}
+              onSelectRoom={onSelectRoom}
+            />
+          ))
         )}
       </div>
     </div>

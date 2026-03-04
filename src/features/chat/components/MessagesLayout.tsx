@@ -27,7 +27,7 @@ const MessagesLayout = () => {
 
   const {
     messages,
-    conceptData,
+    conceptMap,
     loadMore,
     loadingMore,
     hasMore,
@@ -43,7 +43,6 @@ const MessagesLayout = () => {
 
     setActiveRoomId((prev) => {
       if (prev) return prev;
-
       return rooms[0].id;
     });
   }, [rooms]);
@@ -147,7 +146,7 @@ const MessagesLayout = () => {
                 key={msg.id}
                 message={msg}
                 currentUserId={currentUser.id}
-                conceptData={conceptData}
+                conceptMap={conceptMap}
               />
             ))
           )}

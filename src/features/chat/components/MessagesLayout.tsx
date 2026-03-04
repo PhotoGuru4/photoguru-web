@@ -1,101 +1,32 @@
-import { useEffect, useRef, useState } from 'react';
-
 import ConversationList from '@features/chat/components/ConversationList';
 import ChatHeader from '@features/chat/components/ChatHeader';
 import MessageBubble from '@features/chat/components/MessageBubble';
 import MessageInput from '@features/chat/components/MessageInput';
 import { LoadMoreDots } from '@shared/components/common/LoadMoreDots';
 
-import { useChatMessages } from '@features/chat/hooks/useChatMessages';
-import { useChatDetail } from '@features/chat/hooks/useChatDetail';
-import { useAuthStore } from '@store/authStore';
+import { useMessagesLayout } from '@features/chat/hooks/useMessagesLayout';
 
 const MessagesLayout = () => {
-  const currentUser = useAuthStore((state) => state.user);
-
-  const [activeRoomId, setActiveRoomId] = useState<number | undefined>(() => {
-    const saved = localStorage.getItem('activeRoomId');
-    return saved ? Number(saved) : undefined;
-  });
-
   const {
-    rooms,
+    currentUser,
+    sortedRooms,
+    activeRoomId,
+    setActiveRoomId,
     currentRoom,
-    sendTextMessage,
-    isLoading: isRoomLoading,
-  } = useChatMessages(activeRoomId);
-
-  const {
     messages,
     conceptMap,
-    loadMore,
+    sendTextMessage,
+    messagesEndRef,
+    scrollContainerRef,
     loadingMore,
-    hasMore,
-  } = useChatDetail(
-    activeRoomId && currentRoom ? String(activeRoomId) : '',
-  );
-
-  const messagesEndRef = useRef<HTMLDivElement | null>(null);
-  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    if (rooms.length === 0) return;
-
-    setActiveRoomId((prev) => {
-      if (prev) return prev;
-      return rooms[0].id;
-    });
-  }, [rooms]);
-
-  useEffect(() => {
-    if (activeRoomId) {
-      localStorage.setItem('activeRoomId', String(activeRoomId));
-    }
-  }, [activeRoomId]);
-
-  useEffect(() => {
-    if (!messagesEndRef.current) return;
-    messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
-
-  useEffect(() => {
-    const container = scrollContainerRef.current;
-    if (!container) return;
-
-    const handleScroll = async () => {
-      if (container.scrollTop < 50 && hasMore && !loadingMore) {
-        const previousHeight = container.scrollHeight;
-
-        await loadMore();
-
-        requestAnimationFrame(() => {
-          const newHeight = container.scrollHeight;
-          container.scrollTop = newHeight - previousHeight;
-        });
-      }
-    };
-
-    container.addEventListener('scroll', handleScroll);
-    return () => container.removeEventListener('scroll', handleScroll);
-  }, [hasMore, loadingMore, loadMore]);
-
-  useEffect(() => {
-    const container = scrollContainerRef.current;
-    if (!container) return;
-
-    if (
-      hasMore &&
-      !loadingMore &&
-      container.scrollHeight <= container.clientHeight
-    ) {
-      loadMore();
-    }
-  }, [messages, hasMore, loadingMore, loadMore]);
+    isRoomsLoading,
+    isLoading,
+  } = useMessagesLayout();
 
   if (!currentUser) return null;
 
   const renderChatArea = () => {
-    if (isRoomLoading) {
+    if (isLoading) {
       return (
         <div className="flex flex-1 items-center justify-center">
           <LoadMoreDots />
@@ -166,10 +97,11 @@ const MessagesLayout = () => {
   return (
     <div className="flex h-full overflow-hidden">
       <ConversationList
-        rooms={rooms}
+        rooms={sortedRooms}
         activeRoomId={activeRoomId}
         onSelectRoom={setActiveRoomId}
-        isLoading={isRoomLoading}
+        isLoading={isRoomsLoading}
+        currentUserId={currentUser.id}
       />
 
       <div className="flex flex-1 bg-gray-50 overflow-hidden">

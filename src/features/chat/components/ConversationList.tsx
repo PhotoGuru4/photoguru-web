@@ -11,24 +11,31 @@ interface Props {
   activeRoomId?: number;
   onSelectRoom: (id: number) => void;
   isLoading?: boolean;
+  currentUserId: number;
 }
 
 interface ConversationItemProps {
   room: ChatRoomListItem;
   isActive: boolean;
   onSelectRoom: (id: number) => void;
+  hasUnread: boolean;
 }
 
 const ConversationItem = ({
   room,
   isActive,
   onSelectRoom,
+  hasUnread,
 }: ConversationItemProps) => {
   return (
     <div
       onClick={() => onSelectRoom(room.id)}
       className={`flex items-center gap-3 p-2 rounded-lg cursor-pointer transition ${
-        isActive ? 'bg-gray-100' : 'hover:bg-gray-50'
+        isActive
+          ? 'bg-gray-100'
+          : hasUnread
+            ? 'bg-pink-50'
+            : 'hover:bg-gray-50'
       }`}
     >
       <img
@@ -37,8 +44,7 @@ const ConversationItem = ({
           DEFAULT_IMAGES.DEFAULT_AVATAR,
         )}
         onError={(e) => {
-          e.currentTarget.src =
-            DEFAULT_IMAGES.DEFAULT_AVATAR;
+          e.currentTarget.src = DEFAULT_IMAGES.DEFAULT_AVATAR;
         }}
         className="w-10 h-10 rounded-full object-cover"
         alt="avatar"
@@ -49,19 +55,29 @@ const ConversationItem = ({
           {room.participant.name}
         </Heading>
 
-        <Text variant="caption" color="muted" lineClamp={1}>
+        <Text
+          variant="caption"
+          lineClamp={1}
+        >
           {room.lastMessage ?? 'Start chatting...'}
         </Text>
       </div>
 
-      <Text variant="small" color="muted">
-        {formatChatTime(
-          room.lastMessageTime ?? room.createdAt,
+      <div className="flex items-center gap-2">
+        <Text variant="small" color="muted">
+          {formatChatTime(
+            room.lastMessageTime ?? room.createdAt,
+          )}
+        </Text>
+
+        {hasUnread && (
+          <span className="w-2 h-2 rounded-full bg-pink-400" />
         )}
-      </Text>
+      </div>
     </div>
   );
 };
+
 const ConversationList = ({
   rooms,
   activeRoomId,
@@ -69,7 +85,7 @@ const ConversationList = ({
   isLoading,
 }: Props) => {
   return (
-    <div className="w-[320px] bg-white p-4 border-r border-gray-100 flex flex-col">
+    <div className="w-[320px] bg-white p-4 border-r border-gray-100 flex flex-col rounded-tl-lg rounded-bl-lg">
       <div className="flex-1 overflow-y-auto space-y-2">
         {isLoading ? (
           <LoadMoreDots />
@@ -83,14 +99,19 @@ const ConversationList = ({
             No conversations
           </Text>
         ) : (
-          rooms.map((room) => (
-            <ConversationItem
-              key={room.id}
-              room={room}
-              isActive={room.id === activeRoomId}
-              onSelectRoom={onSelectRoom}
-            />
-          ))
+          rooms.map((room) => {
+            const hasUnread = room.unreadCount > 0;
+
+            return (
+              <ConversationItem
+                key={room.id}
+                room={room}
+                isActive={room.id === activeRoomId}
+                onSelectRoom={onSelectRoom}
+                hasUnread={hasUnread}
+              />
+            );
+          })
         )}
       </div>
     </div>

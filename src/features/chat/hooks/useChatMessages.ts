@@ -5,27 +5,18 @@ import {
   query,
   orderBy,
   Timestamp,
+  writeBatch,
+  doc,
 } from 'firebase/firestore';
 import { db } from '@lib/firebase';
-
-import { useChatRoomsQuery } from '@features/chat/hooks/queries/useChatRoomsQuery';
-import { useChatRoomByIdQuery } from '@features/chat/hooks/queries/useChatRoomByIdQuery';
 
 import type { Message } from '@features/chat/types/messages';
 import { sendTextMessage } from '@features/chat/services/chatTextFirebaseService';
 
-export const useChatMessages = (roomId?: number) => {
-  const {
-    data: rooms = [],
-    isLoading: isRoomsLoading,
-    refetch,
-  } = useChatRoomsQuery();
-
-  const {
-    data: currentRoom,
-    isLoading: isRoomLoading,
-  } = useChatRoomByIdQuery(roomId);
-
+export const useChatMessages = (
+  roomId?: number,
+  currentUserId?: number,
+) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isMessagesLoading, setIsMessagesLoading] =
     useState(true);
@@ -46,7 +37,7 @@ export const useChatMessages = (roomId?: number) => {
       orderBy('createdAt', 'asc'),
     );
 
-    const unsubscribe = onSnapshot(q, (snapshot) => {
+    const unsubscribe = onSnapshot(q, async (snapshot) => {
       const msgs: Message[] = snapshot.docs.map(
         (doc) => {
           const data = doc.data();
@@ -66,10 +57,48 @@ export const useChatMessages = (roomId?: number) => {
 
       setMessages(msgs);
       setIsMessagesLoading(false);
+
+      if (currentUserId) {
+        await markMessagesAsRead(
+          String(roomId),
+          currentUserId,
+          msgs,
+        );
+      }
     });
 
     return () => unsubscribe();
-  }, [roomId]);
+  }, [roomId, currentUserId]);
+
+  const markMessagesAsRead = async (
+    roomId: string,
+    userId: number,
+    msgs: Message[],
+  ) => {
+    const batch = writeBatch(db);
+
+    const unreadMessages = msgs.filter(
+      (msg) =>
+        msg.senderId !== userId &&
+        msg.isRead === false,
+    );
+
+    unreadMessages.forEach((msg) => {
+      const msgRef = doc(
+        db,
+        'chatRooms',
+        roomId,
+        'messages',
+        msg.id,
+      );
+
+      batch.update(msgRef, { isRead: true });
+    });
+
+    if (unreadMessages.length > 0) {
+      await batch.commit();
+    }
+  };
 
   const handleSendTextMessage = async (
     content: string,
@@ -82,18 +111,11 @@ export const useChatMessages = (roomId?: number) => {
       senderId,
       content,
     );
-
-    refetch();
   };
 
   return {
-    rooms,
-    currentRoom,
     messages,
     sendTextMessage: handleSendTextMessage,
-    isLoading:
-      isRoomsLoading ||
-      isRoomLoading ||
-      isMessagesLoading,
+    isLoading: isMessagesLoading,
   };
 };

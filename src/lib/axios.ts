@@ -6,7 +6,7 @@ import {
 } from '@shared/services/tokenStorage';
 import { useAuthStore } from '@store/authStore';
 import { ROUTES } from '@shared/constants/routes';
-import { API_ENDPOINTS } from '@/shared/constants';
+import { API_ENDPOINTS } from '@shared/constants';
 
 const API_URL =
   import.meta.env.VITE_API_URL ||

@@ -1,21 +1,44 @@
 import axios from 'axios';
-import { getAccessToken, setAccessToken, removeAccessToken } from '@shared/services/tokenStorage';
+import {
+  getAccessToken,
+  setAccessToken,
+  removeAccessToken,
+} from '@shared/services/tokenStorage';
 import { useAuthStore } from '@store/authStore';
 import { ROUTES } from '@shared/constants/routes';
+import { API_ENDPOINTS } from '@shared/constants';
+
+const API_URL =
+  import.meta.env.VITE_API_URL ||
+  'https://photoguru-api.onrender.com/api/v1';
 
 const axiosClient = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'https://photoguru-api.onrender.com/api/v1',
+  baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json',
   },
   withCredentials: true,
 });
 
+let isRefreshing = false;
+let refreshSubscribers: ((token: string) => void)[] = [];
+
+const subscribeTokenRefresh = (cb: (token: string) => void) => {
+  refreshSubscribers.push(cb);
+};
+
+const onRefreshed = (token: string) => {
+  refreshSubscribers.forEach((cb) => cb(token));
+  refreshSubscribers = [];
+};
+
 axiosClient.interceptors.request.use((config) => {
   const token = getAccessToken();
+
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+
   return config;
 });
 
@@ -25,8 +48,9 @@ axiosClient.interceptors.response.use(
     const originalRequest = error.config;
 
     const isAuthRoute =
-      originalRequest?.url?.includes('/auth/login') ||
-      originalRequest?.url?.includes('/auth/refresh-token');
+      originalRequest?.url?.includes(API_ENDPOINTS.AUTH.LOGIN) ||
+      originalRequest?.url?.includes(API_ENDPOINTS.AUTH.REFRESHTOKEN) ||
+      originalRequest?.url?.includes(API_ENDPOINTS.AUTH.LOGOUT);
 
     const hasToken = !!getAccessToken();
 
@@ -38,25 +62,44 @@ axiosClient.interceptors.response.use(
     ) {
       originalRequest._retry = true;
 
+      if (isRefreshing) {
+        return new Promise((resolve) => {
+          subscribeTokenRefresh((token) => {
+            originalRequest.headers.Authorization = `Bearer ${token}`;
+            resolve(axiosClient(originalRequest));
+          });
+        });
+      }
+
       try {
+        isRefreshing = true;
+
         const res = await axios.post(
-          `${axiosClient.defaults.baseURL}/auth/refresh-token`,
+          `${API_URL}${API_ENDPOINTS.AUTH.REFRESHTOKEN}`,
           {},
           { withCredentials: true },
         );
 
-        const { accessToken } = res.data.data;
+        const { access_token } = res.data.data;
 
-        setAccessToken(accessToken);
-        useAuthStore.getState().updateToken(accessToken);
+        setAccessToken(access_token);
 
-        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+        useAuthStore.getState().updateToken(access_token);
+
+        onRefreshed(access_token);
+
+        originalRequest.headers.Authorization = `Bearer ${access_token}`;
+
         return axiosClient(originalRequest);
       } catch (refreshError) {
         removeAccessToken();
         useAuthStore.getState().clearAuth();
+
         window.location.href = ROUTES.LOGIN;
+
         return Promise.reject(refreshError);
+      } finally {
+        isRefreshing = false;
       }
     }
 

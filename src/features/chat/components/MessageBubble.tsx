@@ -1,19 +1,23 @@
 import type { Message } from '@features/chat/types/messages';
 import type { ConceptChatCard } from '@features/chat/types/conceptCard';
 import ConceptCardMessage from '@features/chat/components/ConceptCardMessage';
+import BookingMessageCard from '@features/chat/components/BookingMessageCard';
 import { MESSAGE_TYPES } from '@shared/constants/messageType';
 import { Text } from '@shared/components/common/Text';
+import { BOOKING_STATUS } from '@shared/constants/booking';
 
 interface Props {
   message: Message;
   currentUserId: number;
   conceptMap: Record<number, ConceptChatCard | undefined>;
+  roomId: string;
 }
 
 const MessageBubble = ({
   message,
   currentUserId,
   conceptMap,
+  roomId,
 }: Props) => {
   const isMe = message.senderId === currentUserId;
 
@@ -29,6 +33,7 @@ const MessageBubble = ({
       }`}
     >
       <div className="flex flex-col max-w-[65%]">
+
         {message.type === MESSAGE_TYPES.TEXT && (
           <div
             className={`px-4 py-2 rounded-2xl break-all whitespace-pre-wrap ${
@@ -50,6 +55,15 @@ const MessageBubble = ({
           <ConceptCardMessage concept={concept} />
         )}
 
+        {message.type === MESSAGE_TYPES.BOOKING && message.bookingId && (
+          <BookingMessageCard
+            bookingId={message.bookingId}
+            initialStatus={message.status ?? BOOKING_STATUS.PENDING}
+            roomId={roomId}
+            messageId={message.id}
+          />
+        )}
+
         <Text
           variant="small"
           color="muted"
@@ -57,12 +71,13 @@ const MessageBubble = ({
           className="mt-1"
         >
           {message.createdAt
-            .toDate()
-            .toLocaleTimeString([], {
+            ?.toDate()
+            ?.toLocaleTimeString([], {
               hour: '2-digit',
               minute: '2-digit',
             })}
         </Text>
+
       </div>
     </div>
   );

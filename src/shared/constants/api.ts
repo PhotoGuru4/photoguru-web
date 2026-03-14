@@ -15,4 +15,12 @@ export const API_ENDPOINTS = {
     CHATROOMID: (id: number) => `/chat-rooms/${id}`,
     CHATCONCEPTCARD: (conceptId: number) => `/concepts/${conceptId}/chat-card`,
   },
+  CONCEPT: {
+    PACKAGES: (conceptId: number) => `/concepts/${conceptId}/packages`,
+  },
+  BOOKINGS: {
+    DETAIL: (id: number) => `/bookings/${id}`,
+    RESPOND: (id: number) => `/bookings/${id}/respond`,
+    COMPLETE: (id: number) => `/bookings/${id}/complete`,
+  },
 };

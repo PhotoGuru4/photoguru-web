@@ -5,6 +5,7 @@ import BookingMessageCard from '@features/chat/components/BookingMessageCard';
 import { MESSAGE_TYPES } from '@shared/constants/messageType';
 import { Text } from '@shared/components/common/Text';
 import { BOOKING_STATUS } from '@shared/constants/booking';
+import { formatTime } from '@shared/utils/formatTime';
 
 interface Props {
   message: Message;
@@ -71,11 +72,8 @@ const MessageBubble = ({
           className="mt-1"
         >
           {message.createdAt
-            ?.toDate()
-            ?.toLocaleTimeString([], {
-              hour: '2-digit',
-              minute: '2-digit',
-            })}
+            ? formatTime(message.createdAt.toDate().toISOString())
+            : ''}
         </Text>
 
       </div>

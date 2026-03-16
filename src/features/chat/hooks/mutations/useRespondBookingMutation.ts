@@ -25,6 +25,7 @@ export const useRespondBookingMutation = () => {
       messageId,
       senderId,
     }: Variables) => {
+
       const booking = await respondBooking(bookingId, status);
 
       await updateBookingMessageStatus(roomId, messageId, status);

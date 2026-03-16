@@ -7,11 +7,8 @@ import {
   Check,
   X,
 } from 'lucide-react';
-import { AxiosError } from 'axios';
 
 import { Text, Button } from '@shared/components/common';
-import { useBookingDetailQuery } from '@features/chat/hooks/queries/useBookingDetailQuery';
-import { useRespondBookingMutation } from '@features/chat/hooks/mutations/useRespondBookingMutation';
 
 import { formatVND } from '@shared/utils/formatVND';
 import { formatTime } from '@shared/utils/formatTime';
@@ -21,8 +18,7 @@ import { getSafeImage } from '@shared/utils/safeImage';
 import { DEFAULT_IMAGES } from '@shared/constants';
 import { BOOKING_STATUS } from '@shared/constants/booking';
 
-import { useAuthStore } from '@store/authStore';
-import { showError, showSuccess } from '@shared/utils/toast';
+import { useBookingMessageCard } from '@features/chat/hooks/useBookingMessageCard';
 
 interface Props {
   bookingId: number;
@@ -31,23 +27,19 @@ interface Props {
   messageId: string;
 }
 
-interface ApiError {
-  message?: string;
-}
-
 const BookingMessageCard = ({
   bookingId,
   initialStatus,
   roomId,
   messageId,
 }: Props) => {
-  const { data: booking } = useBookingDetailQuery(bookingId);
-  const { user } = useAuthStore();
-
-  const { mutate: respondBooking, isPending } =
-    useRespondBookingMutation();
-
-  const status = booking?.status || initialStatus;
+  const { booking, status, isPending, handleRespond, statusStyle } =
+    useBookingMessageCard({
+      bookingId,
+      initialStatus,
+      roomId,
+      messageId,
+    });
 
   if (!booking) return null;
 
@@ -59,101 +51,10 @@ const BookingMessageCard = ({
   const formatStatus = (s: string) =>
     s.charAt(0) + s.slice(1).toLowerCase();
 
-  const getStatusStyle = () => {
-    switch (status) {
-      case BOOKING_STATUS.PENDING:
-        return {
-          badge: 'bg-amber-100 text-amber-700',
-          message: '',
-          messageStyle: '',
-        };
-
-      case BOOKING_STATUS.INPROGRESS:
-        return {
-          badge: 'bg-pink-100 text-pink-600',
-          message: 'This booking is in progress',
-          messageStyle: 'bg-pink-50 text-pink-600',
-        };
-
-      case BOOKING_STATUS.CONFIRMED:
-        return {
-          badge: 'bg-blue-100 text-blue-700',
-          message: 'You have confirmed this booking',
-          messageStyle: 'bg-blue-50 text-blue-700',
-        };
-
-      case BOOKING_STATUS.REJECTED:
-        return {
-          badge: 'bg-red-100 text-red-700',
-          message: 'This booking has been declined',
-          messageStyle: 'bg-red-50 text-red-700',
-        };
-
-      case BOOKING_STATUS.COMPLETED:
-        return {
-          badge: 'bg-green-100 text-green-700',
-          message: 'This booking has been completed',
-          messageStyle: 'bg-green-50 text-green-700',
-        };
-
-      default:
-        return {
-          badge: 'bg-gray-100 text-gray-700',
-          message: '',
-          messageStyle: '',
-        };
-    }
-  };
-
-  const statusStyle = getStatusStyle();
-
-  const handleRespond = (
-    newStatus:
-      | typeof BOOKING_STATUS.CONFIRMED
-      | typeof BOOKING_STATUS.REJECTED,
-  ) => {
-    if (!user) {
-      showError('Authentication error');
-      return;
-    }
-
-    respondBooking(
-      {
-        bookingId,
-        status: newStatus,
-        roomId,
-        messageId,
-        senderId: user.id,
-      },
-      {
-        onSuccess: () => {
-          showSuccess(
-            newStatus === BOOKING_STATUS.CONFIRMED
-              ? 'Booking accepted'
-              : 'Booking rejected',
-          );
-        },
-        onError: (error: Error) => {
-          const axiosError = error as AxiosError<ApiError>;
-
-          const message =
-            axiosError.response?.data?.message ||
-            axiosError.message ||
-            'Something went wrong';
-
-          showError('Booking action failed', message);
-        },
-      },
-    );
-  };
-
   return (
     <div className="rounded-2xl border border-gray-200 bg-white overflow-hidden w-105">
-
       <div className="flex justify-between items-center px-4 py-3 bg-gray-50 border-b border-gray-200">
-        <Text className="font-semibold">
-          Booking Request
-        </Text>
+        <Text className="font-semibold">Booking Request</Text>
 
         <div
           className={`px-3 py-1 rounded-full text-sm font-semibold ${statusStyle.badge}`}
@@ -163,7 +64,6 @@ const BookingMessageCard = ({
       </div>
 
       <div className="p-4">
-
         <div className="flex gap-3 mb-4">
           <img
             src={imageUri}
@@ -171,7 +71,7 @@ const BookingMessageCard = ({
           />
 
           <div className="flex flex-col justify-center">
-            <Text lineClamp={1} color='pink' className="font-semibold">
+            <Text lineClamp={1} color="pink" className="font-semibold">
               {booking.concept?.name}
             </Text>
 
@@ -186,7 +86,6 @@ const BookingMessageCard = ({
         </div>
 
         <div className="space-y-3 mb-4">
-
           <div className="flex items-center gap-2">
             <Calendar size={16} className="text-gray-500" />
             <Text variant="caption">
@@ -216,7 +115,6 @@ const BookingMessageCard = ({
               Price:
             </Text>
             <Text
-              lineClamp={1}
               variant="caption"
               color="pink"
               className="font-semibold"
@@ -224,9 +122,10 @@ const BookingMessageCard = ({
               {formatVND(booking.totalPrice)}
             </Text>
           </div>
+
           <div className="flex items-center gap-2">
             <User size={16} className="text-gray-500" />
-            <Text lineClamp={1} variant="caption">
+            <Text variant="caption">
               <b>Customer:</b> {booking.client?.fullName}
             </Text>
           </div>
@@ -237,41 +136,11 @@ const BookingMessageCard = ({
               <b>Address:</b> {booking.address}
             </Text>
           </div>
-
-        </div>
-
-        <div className="bg-gray-50 p-4 rounded-xl">
-
-          <Text
-            variant="caption"
-            className="mb-3 font-medium text-pink-500"
-          >
-            Package Includes:
-          </Text>
-
-          <div className="space-y-2">
-            {booking.package?.benefit?.map((benefit, index) => (
-              <div key={index} className="flex items-center gap-2">
-                <Check size={14} className="text-pink-500" />
-                <Text lineClamp={1} variant="small">{benefit}</Text>
-              </div>
-            ))}
-
-            {booking.package?.estimatedDuration && (
-              <div className="flex items-center gap-2">
-                <Check size={14} className="text-pink-500" />
-                <Text lineClamp={1} variant="small">
-                  {booking.package.estimatedDuration} minutes photo session
-                </Text>
-              </div>
-            )}
-          </div>
         </div>
       </div>
 
       {status === BOOKING_STATUS.PENDING && (
         <div className="flex gap-3 p-4">
-
           <Button
             variant="outline"
             className="flex-1"
@@ -294,7 +163,6 @@ const BookingMessageCard = ({
           >
             Accept
           </Button>
-
         </div>
       )}
 
@@ -309,7 +177,6 @@ const BookingMessageCard = ({
           {statusStyle.message}
         </div>
       )}
-
     </div>
   );
 };

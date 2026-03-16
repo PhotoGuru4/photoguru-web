@@ -1,6 +1,6 @@
 import type { Message } from '@features/chat/types/messages';
 import type { ConceptChatCard } from '@features/chat/types/conceptCard';
-import ConceptCardMessage from '@features/chat/components/ConceptCardMessage';
+import ConceptMessageCard from '@/features/chat/components/ConceptMessageCard';
 import BookingMessageCard from '@features/chat/components/BookingMessageCard';
 import { MESSAGE_TYPES } from '@shared/constants/messageType';
 import { Text } from '@shared/components/common/Text';
@@ -53,7 +53,7 @@ const MessageBubble = ({
         )}
 
         {message.type === MESSAGE_TYPES.CONCEPT && concept && (
-          <ConceptCardMessage concept={concept} />
+          <ConceptMessageCard concept={concept} />
         )}
 
         {message.type === MESSAGE_TYPES.BOOKING && message.bookingId && (

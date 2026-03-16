@@ -239,13 +239,12 @@ const BookingMessageCard = ({
           </Text>
 
           <div className="space-y-2">
-
-            <div className="flex items-center gap-2">
-              <Check size={14} className="text-pink-500" />
-              <Text variant="small">
-                {booking.package?.description || 'Photo session'}
-              </Text>
-            </div>
+            {booking.package?.benefit?.map((benefit, index) => (
+              <div key={index} className="flex items-center gap-2">
+                <Check size={14} className="text-pink-500" />
+                <Text variant="small">{benefit}</Text>
+              </div>
+            ))}
 
             {booking.package?.estimatedDuration && (
               <div className="flex items-center gap-2">
@@ -255,10 +254,8 @@ const BookingMessageCard = ({
                 </Text>
               </div>
             )}
-
           </div>
         </div>
-
       </div>
 
       {status === BOOKING_STATUS.PENDING && (

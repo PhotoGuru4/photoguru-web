@@ -9,7 +9,7 @@ interface Props {
   concept: ConceptChatCard;
 }
 
-const ConceptCardMessage = ({ concept }: Props) => {
+const ConceptMessageCard = ({ concept }: Props) => {
   return (
     <div className="bg-white border border-gray-100 rounded-2xl shadow-sm max-w-md overflow-hidden">
       <div className="w-full bg-gray-50">
@@ -48,4 +48,4 @@ const ConceptCardMessage = ({ concept }: Props) => {
   );
 };
 
-export default ConceptCardMessage;
+export default ConceptMessageCard;

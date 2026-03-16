@@ -78,6 +78,7 @@ const MessagesLayout = () => {
                 message={msg}
                 currentUserId={currentUser.id}
                 conceptMap={conceptMap}
+                roomId={String(activeRoomId)}
               />
             ))
           )}

@@ -12,6 +12,11 @@ import { useAuthStore } from '@store/authStore';
 import type { LoginResponse } from '@features/auth/types/login';
 import { ROLES } from '@shared/constants/role';
 
+import {
+  setAccessToken,
+  setRefreshToken,
+} from '@lib/authSession';
+
 export const useLoginForm = () => {
   const navigate = useNavigate();
   const { setAuth, logout } = useAuthStore();
@@ -46,7 +51,7 @@ export const useLoginForm = () => {
 
     loginMutation.mutate(values, {
       onSuccess: (res: LoginResponse) => {
-        const { access_token, user } = res;
+        const { access_token, refresh_token, user } = res;
 
         if (user.role !== ROLES.PHOTOGRAPHER) {
           logout();
@@ -55,6 +60,11 @@ export const useLoginForm = () => {
             'Customer please login using mobile app',
           );
           return;
+        }
+
+        setAccessToken(access_token);
+        if (refresh_token) {
+          setRefreshToken(refresh_token);
         }
 
         setAuth(user, access_token);

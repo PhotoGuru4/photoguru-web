@@ -3,7 +3,7 @@ export const API_ENDPOINTS = {
     REGISTER: '/auth/register',
     LOGIN: '/auth/login',
     LOGOUT: '/auth/logout',
-    REFRESHTOKEN: '/auth/refresh',
+    REFRESH: '/auth/refresh',
   },
   LOCATION: 'https://provinces.open-api.vn/api/v2',
   DASHBOARD: {
@@ -14,5 +14,13 @@ export const API_ENDPOINTS = {
     CHATROOMS: '/chat-rooms',
     CHATROOMID: (id: number) => `/chat-rooms/${id}`,
     CHATCONCEPTCARD: (conceptId: number) => `/concepts/${conceptId}/chat-card`,
+  },
+  CONCEPT: {
+    PACKAGES: (conceptId: number) => `/concepts/${conceptId}/packages`,
+  },
+  BOOKINGS: {
+    DETAIL: (id: number) => `/bookings/${id}`,
+    RESPOND: (id: number) => `/bookings/${id}/respond`,
+    COMPLETE: (id: number) => `/bookings/${id}/complete`,
   },
 };

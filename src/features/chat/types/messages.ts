@@ -18,4 +18,10 @@ export interface ConceptMessage extends BaseMessage {
   conceptId: number;
 }
 
-export type Message = TextMessage | ConceptMessage;
+export interface BookingMessage extends BaseMessage {
+  type: typeof MESSAGE_TYPES.BOOKING;
+  bookingId: number;
+  status: string;
+}
+
+export type Message = TextMessage | ConceptMessage | BookingMessage;

@@ -1,4 +1,4 @@
-import axiosClient from '@lib/axios';
+import axiosClient from '@lib/axiosClient';
 import type { AxiosRequestConfig, AxiosResponse } from 'axios';
 
 import { HTTP_METHOD, type HttpMethod } from '@shared/constants/httpMethod';

@@ -68,6 +68,13 @@ const BookingMessageCard = ({
           messageStyle: '',
         };
 
+      case BOOKING_STATUS.INPROGRESS:
+        return {
+          badge: 'bg-pink-100 text-pink-600',
+          message: 'This booking is in progress',
+          messageStyle: 'bg-pink-50 text-pink-600',
+        };
+
       case BOOKING_STATUS.CONFIRMED:
         return {
           badge: 'bg-blue-100 text-blue-700',
@@ -164,7 +171,7 @@ const BookingMessageCard = ({
           />
 
           <div className="flex flex-col justify-center">
-            <Text className="font-semibold text-pink-500">
+            <Text lineClamp={1} color='pink' className="font-semibold">
               {booking.concept?.name}
             </Text>
 
@@ -205,24 +212,28 @@ const BookingMessageCard = ({
 
           <div className="flex items-center gap-2">
             <DollarSign size={16} className="text-gray-500" />
-            <Text variant="caption">
-              <b>Price:</b>{' '}
-              <Text as="span" color="pink" className="font-semibold">
-                {formatVND(booking.totalPrice)}
-              </Text>
+            <Text variant="caption" className="font-semibold">
+              Price:
+            </Text>
+            <Text
+              lineClamp={1}
+              variant="caption"
+              color="pink"
+              className="font-semibold"
+            >
+              {formatVND(booking.totalPrice)}
             </Text>
           </div>
-
           <div className="flex items-center gap-2">
             <User size={16} className="text-gray-500" />
-            <Text variant="caption">
+            <Text lineClamp={1} variant="caption">
               <b>Customer:</b> {booking.client?.fullName}
             </Text>
           </div>
 
           <div className="flex items-center gap-2">
             <MapPin size={16} className="text-gray-500" />
-            <Text variant="caption">
+            <Text lineClamp={1} variant="caption">
               <b>Address:</b> {booking.address}
             </Text>
           </div>
@@ -242,14 +253,14 @@ const BookingMessageCard = ({
             {booking.package?.benefit?.map((benefit, index) => (
               <div key={index} className="flex items-center gap-2">
                 <Check size={14} className="text-pink-500" />
-                <Text variant="small">{benefit}</Text>
+                <Text lineClamp={1} variant="small">{benefit}</Text>
               </div>
             ))}
 
             {booking.package?.estimatedDuration && (
               <div className="flex items-center gap-2">
                 <Check size={14} className="text-pink-500" />
-                <Text variant="small">
+                <Text lineClamp={1} variant="small">
                   {booking.package.estimatedDuration} minutes photo session
                 </Text>
               </div>
@@ -293,6 +304,7 @@ const BookingMessageCard = ({
         >
           {status === BOOKING_STATUS.CONFIRMED && <Check size={16} />}
           {status === BOOKING_STATUS.REJECTED && <X size={16} />}
+          {status === BOOKING_STATUS.INPROGRESS && <Clock size={16} />}
 
           {statusStyle.message}
         </div>

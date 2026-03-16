@@ -1,6 +1,6 @@
 import type { Message } from '@features/chat/types/messages';
 import type { ConceptChatCard } from '@features/chat/types/conceptCard';
-import ConceptMessageCard from '@/features/chat/components/ConceptMessageCard';
+import ConceptMessageCard from '@features/chat/components/ConceptMessageCard';
 import BookingMessageCard from '@features/chat/components/BookingMessageCard';
 import { MESSAGE_TYPES } from '@shared/constants/messageType';
 import { Text } from '@shared/components/common/Text';

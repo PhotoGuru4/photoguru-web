@@ -3,7 +3,7 @@ export const API_ENDPOINTS = {
     REGISTER: '/auth/register',
     LOGIN: '/auth/login',
     LOGOUT: '/auth/logout',
-    REFRESHTOKEN: '/auth/refresh',
+    REFRESH: '/auth/refresh',
   },
   LOCATION: 'https://provinces.open-api.vn/api/v2',
   DASHBOARD: {

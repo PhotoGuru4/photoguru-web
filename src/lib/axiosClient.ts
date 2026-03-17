@@ -1,15 +1,9 @@
 import axios from 'axios';
-import type { AxiosError, AxiosRequestConfig } from 'axios';
-
 import {
   getAccessToken,
   setAccessToken,
   removeAccessToken,
-  getRefreshToken,
-  setRefreshToken,
-  removeRefreshToken,
-} from '@lib/authSession';
-
+} from '@shared/services/tokenStorage';
 import { useAuthStore } from '@store/authStore';
 import { ROUTES } from '@shared/constants/routes';
 import { API_ENDPOINTS } from '@shared/constants';
@@ -23,11 +17,11 @@ const axiosClient = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true,
 });
 
 let isRefreshing = false;
-
-let refreshSubscribers: ((token: string) => void)[] = [];
+let refreshSubscribers: ((token: string) => void)[] =[];
 
 const subscribeTokenRefresh = (cb: (token: string) => void) => {
   refreshSubscribers.push(cb);
@@ -35,18 +29,14 @@ const subscribeTokenRefresh = (cb: (token: string) => void) => {
 
 const onRefreshed = (token: string) => {
   refreshSubscribers.forEach((cb) => cb(token));
-  refreshSubscribers = [];
-};
-
-type RetryRequestConfig = AxiosRequestConfig & {
-  _retry?: boolean;
+  refreshSubscribers =[];
 };
 
 axiosClient.interceptors.request.use((config) => {
   const token = getAccessToken();
 
-  if (token && config.headers) {
-    config.headers.Authorization = `Bearer ${token}`;
+  if (token) {
+    config.headers['Authorization'] = `Bearer ${token}`;
   }
 
   return config;
@@ -54,17 +44,13 @@ axiosClient.interceptors.request.use((config) => {
 
 axiosClient.interceptors.response.use(
   (response) => response,
-  async (error: AxiosError) => {
-    const originalRequest = error.config as RetryRequestConfig | undefined;
-
-    if (!originalRequest) {
-      return Promise.reject(error);
-    }
+  async (error) => {
+    const originalRequest = error.config;
 
     const isAuthRoute =
-      originalRequest.url?.includes(API_ENDPOINTS.AUTH.LOGIN) ||
-      originalRequest.url?.includes(API_ENDPOINTS.AUTH.REFRESH) ||
-      originalRequest.url?.includes(API_ENDPOINTS.AUTH.LOGOUT);
+      originalRequest?.url?.includes(API_ENDPOINTS.AUTH.LOGIN) ||
+      originalRequest?.url?.includes(API_ENDPOINTS.AUTH.REFRESH) ||
+      originalRequest?.url?.includes(API_ENDPOINTS.AUTH.LOGOUT);
 
     const hasToken = !!getAccessToken();
 
@@ -79,9 +65,7 @@ axiosClient.interceptors.response.use(
       if (isRefreshing) {
         return new Promise((resolve) => {
           subscribeTokenRefresh((token) => {
-            if (originalRequest.headers) {
-              originalRequest.headers.Authorization = `Bearer ${token}`;
-            }
+            originalRequest.headers['Authorization'] = `Bearer ${token}`;
             resolve(axiosClient(originalRequest));
           });
         });
@@ -90,43 +74,24 @@ axiosClient.interceptors.response.use(
       try {
         isRefreshing = true;
 
-        const refreshToken = getRefreshToken();
-
-        if (!refreshToken) {
-          throw new Error();
-        }
-
-        const res = await axiosClient.post(
-          API_ENDPOINTS.AUTH.REFRESH,
+        const res = await axios.post(
+          `${API_URL}${API_ENDPOINTS.AUTH.REFRESH}`,
           {},
-          {
-            headers: {
-              Authorization: `Bearer ${refreshToken}`,
-            },
-          },
+          { withCredentials: true },
         );
 
-        const { access_token, refresh_token } = res.data.data;
+        const { access_token } = res.data.data;
 
         setAccessToken(access_token);
-
-        if (refresh_token) {
-          setRefreshToken(refresh_token);
-        }
 
         useAuthStore.getState().updateToken(access_token);
 
         onRefreshed(access_token);
 
-        if (originalRequest.headers) {
-          originalRequest.headers.Authorization = `Bearer ${access_token}`;
-        }
-
-        return axiosClient(originalRequest);
+        originalRequest.headers['Authorization'] = `Bearer ${access_token}`;
+        return await axiosClient(originalRequest);
       } catch (refreshError) {
         removeAccessToken();
-        removeRefreshToken();
-
         useAuthStore.getState().clearAuth();
 
         window.location.href = ROUTES.LOGIN;

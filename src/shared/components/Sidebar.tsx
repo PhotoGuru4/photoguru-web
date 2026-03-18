@@ -14,9 +14,9 @@ import { useEffect, useRef, useState } from 'react';
 
 const menuItems = [
   { label: 'Home', icon: Home, path: ROUTES.HOME },
-  { label: 'Booking', icon: Briefcase, path: ROUTES.BOOKING },
   { label: 'Messages', icon: MessageCircle, path: ROUTES.MESSAGES },
   { label: 'Concept', icon: FolderPlus, path: ROUTES.CONCEPT },
+  { label: 'Booking', icon: Briefcase, path: ROUTES.BOOKING },
 ];
 
 const Sidebar = () => {

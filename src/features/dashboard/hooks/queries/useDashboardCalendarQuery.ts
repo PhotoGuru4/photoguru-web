@@ -9,7 +9,8 @@ export const useDashboardCalendarQuery = (
   return useQuery<DashboardCalendarEvent>({
     queryKey: ['dashboardCalendar', month, year],
     queryFn: () => getDashboardCalendar(month, year),
-    staleTime: 0,
-    refetchOnWindowFocus: true,
+    placeholderData: (prev) => prev,
+    staleTime: 1000 * 60 * 5,
+    refetchOnWindowFocus: false,
   });
 };

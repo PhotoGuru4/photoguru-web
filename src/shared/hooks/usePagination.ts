@@ -19,7 +19,7 @@ export const usePagination = <T>({
   perPage = PAGINATION.PAGE_OFFSET.PER_PAGE,
 }: UsePaginationParams<T>) => {
   const [items, setItems] = useState<T[]>([]);
-  const [page, setPage] = useState(PAGINATION.PAGE_OFFSET.PAGE);
+  const [page, setPage] = useState(PAGINATION.PAGE_OFFSET.PER_PAGE);
   const [pagination, setPagination] = useState<{
     page: number;
     perPage: number;

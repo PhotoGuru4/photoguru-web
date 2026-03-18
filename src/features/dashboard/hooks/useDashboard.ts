@@ -29,7 +29,8 @@ export const useDashboard = () => {
     setCurrentYear,
 
     isSummaryLoading: summaryQuery.isLoading,
-    isCalendarLoading: calendarQuery.isFetching,
+    isCalendarLoading: calendarQuery.isLoading,
+    isCalendarFetching: calendarQuery.isFetching,
 
     isError: summaryQuery.isError || calendarQuery.isError,
   };

@@ -16,7 +16,8 @@ export const API_ENDPOINTS = {
     CHATCONCEPTCARD: (conceptId: number) => `/concepts/${conceptId}/chat-card`,
   },
   CONCEPT: {
-    PACKAGES: (conceptId: number) => `/concepts/${conceptId}/packages`,
+    CONCEPTLIST: '/concepts/photographer/me',
+
   },
   BOOKINGS: {
     DETAIL: (id: number) => `/bookings/${id}`,

@@ -4,7 +4,6 @@ import DashboardQuickActions from '@features/dashboard/components/DashboardQuick
 
 import {
   Heading,
-  Loading,
   Text,
 } from '@shared/components/common';
 
@@ -24,10 +23,6 @@ const Home = () => {
     isCalendarLoading,
     isError,
   } = useDashboard();
-
-  if (isSummaryLoading) {
-    return <Loading />;
-  }
 
   return (
     <main className="min-h-screen bg-gray-50 px-10 py-8">
@@ -49,7 +44,7 @@ const Home = () => {
 
           <div>
             <Heading level={4}>
-              {isError ? 'Hi there' : `Hi ${summary?.greetingName}`}
+              {isError ? 'Hi there' : `Hi ${summary?.greetingName || ''}`}
             </Heading>
             <Text variant="caption" color="muted">
               Ready for a productive day?
@@ -57,19 +52,41 @@ const Home = () => {
           </div>
         </div>
 
-        <DashboardStats
-          today={isError ? 0 : summary?.earnings?.today}
-          thisMonth={isError ? 0 : summary?.earnings?.thisMonth}
-        />
+        {isSummaryLoading ? (
+          <div className="grid grid-cols-2 gap-6">
+            {[1, 2].map((i) => (
+              <div
+                key={i}
+                className="h-24 bg-gray-100 animate-pulse rounded-2xl"
+              />
+            ))}
+          </div>
+        ) : (
+          <DashboardStats
+            today={isError ? 0 : summary?.earnings?.today}
+            thisMonth={isError ? 0 : summary?.earnings?.thisMonth}
+          />
+        )}
 
-        <DashboardCalendar
-          schedules={isError ? [] : calendar?.schedules || []}
-          currentMonth={currentMonth}
-          currentYear={currentYear}
-          setCurrentMonth={setCurrentMonth}
-          setCurrentYear={setCurrentYear}
-          isLoading={isCalendarLoading}
-        />
+        <div className="relative">
+
+          {isCalendarLoading && (
+            <div className="h-100 bg-gray-100 animate-pulse rounded-2xl" />
+          )}
+
+          {!isCalendarLoading && (
+            <>
+              <DashboardCalendar
+                schedules={isError ? [] : calendar?.schedules || []}
+                currentMonth={currentMonth}
+                currentYear={currentYear}
+                setCurrentMonth={setCurrentMonth}
+                setCurrentYear={setCurrentYear}
+                isLoading={false}
+              />
+            </>
+          )}
+        </div>
 
         <DashboardQuickActions />
 

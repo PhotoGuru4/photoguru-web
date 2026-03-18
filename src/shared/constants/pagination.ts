@@ -1,7 +1,6 @@
 export const PAGINATION = {
   PAGE_OFFSET: {
-    PER_PAGE: 9,
-    PAGE: 1,
+    PER_PAGE: 6,
   },
   CURSOR : {
     PAGE_SIZE: 10,

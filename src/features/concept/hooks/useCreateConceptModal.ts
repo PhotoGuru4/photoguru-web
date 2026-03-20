@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { uploadToCloudinary } from '@shared/utils/cloudinary';
 import { useCreateConceptMutation } from '@features/concept/hooks/mutations/useCreateConceptMutation';
 import type {
   CreateConceptPayload,
@@ -8,6 +7,7 @@ import type {
 import { useImageUpload } from '@features/concept/hooks/useImageUpload';
 import { showError, showSuccess } from '@shared/utils/toast';
 import { handleApiError } from '@shared/utils/error-handler';
+import { uploadImagesService } from '@features/concept/services/uploadImagesService';
 
 export const useCreateConceptModal = (onClose: () => void) => {
   const { mutate, isPending } = useCreateConceptMutation();
@@ -24,7 +24,6 @@ export const useCreateConceptModal = (onClose: () => void) => {
   };
 
   const [form, setForm] = useState<CreateConceptPayload>(initialForm);
-
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const photos = useImageUpload();
@@ -49,9 +48,11 @@ export const useCreateConceptModal = (onClose: () => void) => {
 
     if (!form.name.trim()) newErrors.name = 'Title is required';
     if (!form.categoryId) newErrors.categoryId = 'Category is required';
-    if (!form.description.trim()) newErrors.description = 'Description is required';
+    if (!form.description.trim())
+      newErrors.description = 'Description is required';
     if (!thumbnailFile) newErrors.thumbnail = 'Thumbnail is required';
-    if (photos.files.length === 0) newErrors.photos = 'At least one image is required';
+    if (photos.files.length === 0)
+      newErrors.photos = 'At least one image is required';
 
     setErrors(newErrors);
 
@@ -68,11 +69,9 @@ export const useCreateConceptModal = (onClose: () => void) => {
 
     const file = files[0];
     setThumbnailFile(file);
-    setThumbnailPreview(URL.createObjectURL(file));
 
-    if (errors.thumbnail) {
-      setErrors((prev) => ({ ...prev, thumbnail: '' }));
-    }
+    const preview = URL.createObjectURL(file);
+    setThumbnailPreview(preview);
   };
 
   const removeThumbnail = () => {
@@ -135,11 +134,10 @@ export const useCreateConceptModal = (onClose: () => void) => {
     try {
       setIsUploading(true);
 
-      const thumbnailUrl = await uploadToCloudinary(thumbnailFile!);
-
-      const photoUrls: string[] = await Promise.all(
-        photos.files.map((file: File) => uploadToCloudinary(file)),
-      );
+      const { thumbnailUrl, photoUrls } = await uploadImagesService({
+        thumbnail: thumbnailFile!,
+        photos: photos.files,
+      });
 
       const payload: CreateConceptPayload = {
         ...form,
@@ -150,19 +148,15 @@ export const useCreateConceptModal = (onClose: () => void) => {
       mutate(payload, {
         onSuccess: () => {
           showSuccess('Success', 'Concept created successfully');
-
           resetForm();
-
           onClose();
         },
         onError: (error: unknown) => {
-          const message = handleApiError(error);
-          showError('Create failed', message);
+          showError('Create failed', handleApiError(error));
         },
       });
     } catch (error: unknown) {
-      const message = handleApiError(error);
-      showError('Upload failed', message);
+      showError('Upload failed', handleApiError(error));
     } finally {
       setIsUploading(false);
     }

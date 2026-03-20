@@ -98,7 +98,7 @@ const CreateConceptModal = ({ open, onClose }: Props) => {
               </div>
 
               {errors?.categoryId && (
-                <Text variant="caption" className="text-red-500 mt-1">
+                <Text className="text-red-500 text-xs mt-1">
                   {errors.categoryId}
                 </Text>
               )}
@@ -122,7 +122,7 @@ const CreateConceptModal = ({ open, onClose }: Props) => {
             />
 
             {errors?.thumbnail && (
-              <Text variant="caption" className="text-red-500 -mt-3">
+              <Text className="text-red-500 text-xs -mt-3">
                 {errors.thumbnail}
               </Text>
             )}
@@ -141,7 +141,7 @@ const CreateConceptModal = ({ open, onClose }: Props) => {
             />
 
             {errors?.photos && (
-              <Text variant="caption" className="text-red-500 -mt-3">
+              <Text className="text-red-500 text-xs -mt-3">
                 {errors.photos}
               </Text>
             )}

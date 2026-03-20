@@ -10,6 +10,7 @@ export const useImageUpload = () => {
     const arr = Array.from(fileList);
 
     setFiles((prev) => [...prev, ...arr]);
+
     setPreviews((prev) => [
       ...prev,
       ...arr.map((f) => URL.createObjectURL(f)),
@@ -17,11 +18,17 @@ export const useImageUpload = () => {
   };
 
   const removeFile = (index: number) => {
+    setPreviews((prev) => {
+      URL.revokeObjectURL(prev[index]);
+      return prev.filter((_, i) => i !== index);
+    });
+
     setFiles((prev) => prev.filter((_, i) => i !== index));
-    setPreviews((prev) => prev.filter((_, i) => i !== index));
   };
 
   const clear = () => {
+    previews.forEach((url) => URL.revokeObjectURL(url));
+
     setFiles([]);
     setPreviews([]);
   };

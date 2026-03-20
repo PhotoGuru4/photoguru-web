@@ -14,14 +14,16 @@ export const useCreateConceptModal = (onClose: () => void) => {
 
   const [step, setStep] = useState<1 | 2>(1);
 
-  const [form, setForm] = useState<CreateConceptPayload>({
+  const initialForm: CreateConceptPayload = {
     name: '',
     categoryId: 0,
     description: '',
     thumbnailUrl: '',
     photoUrls: [],
     packages: [],
-  });
+  };
+
+  const [form, setForm] = useState<CreateConceptPayload>(initialForm);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -31,6 +33,16 @@ export const useCreateConceptModal = (onClose: () => void) => {
   const [thumbnailPreview, setThumbnailPreview] = useState('');
 
   const [isUploading, setIsUploading] = useState<boolean>(false);
+
+  const resetForm = () => {
+    setForm(initialForm);
+    setErrors({});
+    setStep(1);
+    setThumbnailFile(null);
+    setThumbnailPreview('');
+    photos.clear();
+    setIsUploading(false);
+  };
 
   const validateStep1 = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -138,6 +150,9 @@ export const useCreateConceptModal = (onClose: () => void) => {
       mutate(payload, {
         onSuccess: () => {
           showSuccess('Success', 'Concept created successfully');
+
+          resetForm();
+
           onClose();
         },
         onError: (error: unknown) => {

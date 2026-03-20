@@ -17,7 +17,8 @@ export const API_ENDPOINTS = {
   },
   CONCEPT: {
     CONCEPTLIST: '/concepts/photographer/me',
-
+    CREATECONCEPT: '/concepts',
+    CATEGORIES: '/concepts/categories',
   },
   BOOKINGS: {
     DETAIL: (id: number) => `/bookings/${id}`,

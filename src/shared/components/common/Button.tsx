@@ -6,7 +6,7 @@ export type ButtonSize = 'sm' | 'md' | 'lg';
 export type ButtonIconPosition = 'prefix' | 'suffix';
 
 interface ButtonProps {
-  children: React.ReactNode;
+  children?: React.ReactNode;
   variant?: ButtonVariant;
   size?: ButtonSize;
   icon?: React.ReactNode;

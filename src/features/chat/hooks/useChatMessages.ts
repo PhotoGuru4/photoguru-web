@@ -5,8 +5,6 @@ import {
   query,
   orderBy,
   Timestamp,
-  writeBatch,
-  doc,
 } from 'firebase/firestore';
 import { db } from '@lib/firebase';
 
@@ -15,7 +13,6 @@ import { sendTextMessage } from '@features/chat/services/chatTextFirebaseService
 
 export const useChatMessages = (
   roomId?: number,
-  currentUserId?: number,
 ) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isMessagesLoading, setIsMessagesLoading] =
@@ -37,7 +34,7 @@ export const useChatMessages = (
       orderBy('createdAt', 'asc'),
     );
 
-    const unsubscribe = onSnapshot(q, async (snapshot) => {
+    const unsubscribe = onSnapshot(q, (snapshot) => {
       const msgs: Message[] = snapshot.docs.map(
         (doc) => {
           const data = doc.data();
@@ -57,48 +54,10 @@ export const useChatMessages = (
 
       setMessages(msgs);
       setIsMessagesLoading(false);
-
-      if (currentUserId) {
-        await markMessagesAsRead(
-          String(roomId),
-          currentUserId,
-          msgs,
-        );
-      }
     });
 
     return () => unsubscribe();
-  }, [roomId, currentUserId]);
-
-  const markMessagesAsRead = async (
-    roomId: string,
-    userId: number,
-    msgs: Message[],
-  ) => {
-    const batch = writeBatch(db);
-
-    const unreadMessages = msgs.filter(
-      (msg) =>
-        msg.senderId !== userId &&
-        msg.isRead === false,
-    );
-
-    unreadMessages.forEach((msg) => {
-      const msgRef = doc(
-        db,
-        'chatRooms',
-        roomId,
-        'messages',
-        msg.id,
-      );
-
-      batch.update(msgRef, { isRead: true });
-    });
-
-    if (unreadMessages.length > 0) {
-      await batch.commit();
-    }
-  };
+  }, [roomId]);
 
   const handleSendTextMessage = async (
     content: string,

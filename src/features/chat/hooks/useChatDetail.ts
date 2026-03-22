@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useCallback } from 'react';
+import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import {
   collection,
   query,
@@ -21,18 +21,32 @@ import { MESSAGE_TYPES } from '@shared/constants/messageType';
 import { PAGINATION } from '@shared/constants';
 import { useConceptChatCardQueries } from '@features/chat/hooks/queries/useConceptChatCardQuery';
 
-export const useChatDetail = (roomId?: string) => {
+export const useChatDetail = (roomId?: string, currentUserId?: number) => {
   const [messages, setMessages] = useState<Message[]>([]);
+  const messagesRef = useRef<Message[]>([]);
+
   const [lastDoc, setLastDoc] =
     useState<QueryDocumentSnapshot<DocumentData> | null>(null);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
+
+  const [totalUnread, setTotalUnread] = useState(0);
+
+  const currentUserIdRef = useRef<number | undefined>(currentUserId);
+
+  useEffect(() => {
+    currentUserIdRef.current = currentUserId;
+  }, [currentUserId]);
 
   useEffect(() => {
     setMessages([]);
     setLastDoc(null);
     setHasMore(true);
   }, [roomId]);
+
+  useEffect(() => {
+    messagesRef.current = messages;
+  }, [messages]);
 
   useEffect(() => {
     if (!roomId) return;
@@ -67,8 +81,36 @@ export const useChatDetail = (roomId?: string) => {
       });
 
       setMessages(newMessages.reverse());
+
       setLastDoc(docs[docs.length - 1]);
       setHasMore(docs.length === PAGINATION.CURSOR.PAGE_SIZE);
+    });
+
+    return () => unsubscribe();
+  }, [roomId]);
+
+  useEffect(() => {
+    if (!roomId) return;
+
+    const q = query(
+      collection(db, 'chatRooms', roomId, 'messages'),
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      let count = 0;
+
+      snapshot.docs.forEach((doc) => {
+        const data = doc.data();
+
+        if (
+          data.senderId !== currentUserIdRef.current &&
+          data.isRead === false
+        ) {
+          count++;
+        }
+      });
+
+      setTotalUnread(count);
     });
 
     return () => unsubscribe();
@@ -149,5 +191,7 @@ export const useChatDetail = (roomId?: string) => {
     loadMore,
     loadingMore,
     hasMore,
+    messagesRef,
+    totalUnread,
   };
 };

@@ -2,9 +2,9 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { useChatRoomsQuery } from '@features/chat/hooks/queries/useChatRoomsQuery';
 import { useChatRoomByIdQuery } from '@features/chat/hooks/queries/useChatRoomByIdQuery';
-import { useChatMessages } from '@features/chat/hooks/useChatMessages';
 import { useChatDetail } from '@features/chat/hooks/useChatDetail';
 import { useAuthStore } from '@store/authStore';
+import { sendTextMessage } from '@features/chat/services/chatTextFirebaseService';
 
 export const useMessagesLayout = () => {
   const currentUser = useAuthStore((state) => state.user);
@@ -18,19 +18,15 @@ export const useMessagesLayout = () => {
 
   const {
     messages,
-    sendTextMessage,
-  } = useChatMessages(
-    activeRoomId,
-    currentUser?.id,
-  );
-
-  const {
     conceptMap,
     loadMore,
     loadingMore,
     hasMore,
+    messagesRef,
+    totalUnread,
   } = useChatDetail(
     activeRoomId && currentRoom ? String(activeRoomId) : '',
+    currentUser?.id,
   );
 
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
@@ -62,11 +58,16 @@ export const useMessagesLayout = () => {
     });
   }, [sortedRooms]);
 
+  const isFirstLoadRef = useRef(true);
+
   useEffect(() => {
-    if (!messagesEndRef.current) return;
-    messagesEndRef.current.scrollIntoView({
-      behavior: 'smooth',
-    });
+    if (
+      isFirstLoadRef.current &&
+      messages.length > 0
+    ) {
+      messagesEndRef.current?.scrollIntoView();
+      isFirstLoadRef.current = false;
+    }
   }, [messages]);
 
   useEffect(() => {
@@ -79,44 +80,34 @@ export const useMessagesLayout = () => {
         hasMore &&
         !loadingMore
       ) {
-        const previousHeight =
-          container.scrollHeight;
+        const prevHeight = container.scrollHeight;
 
         await loadMore();
 
         requestAnimationFrame(() => {
-          const newHeight =
-            container.scrollHeight;
+          const newHeight = container.scrollHeight;
           container.scrollTop =
-            newHeight - previousHeight;
+            newHeight - prevHeight;
         });
       }
     };
 
-    container.addEventListener(
-      'scroll',
-      handleScroll,
-    );
+    container.addEventListener('scroll', handleScroll);
     return () =>
-      container.removeEventListener(
-        'scroll',
-        handleScroll,
-      );
+      container.removeEventListener('scroll', handleScroll);
   }, [hasMore, loadingMore, loadMore]);
 
-  useEffect(() => {
-    const container = scrollContainerRef.current;
-    if (!container) return;
+  const handleSendTextMessage = async (
+    content: string,
+  ) => {
+    if (!activeRoomId || !currentUser) return;
 
-    if (
-      hasMore &&
-      !loadingMore &&
-      container.scrollHeight <=
-        container.clientHeight
-    ) {
-      loadMore();
-    }
-  }, [messages, hasMore, loadingMore, loadMore]);
+    await sendTextMessage(
+      String(activeRoomId),
+      currentUser.id,
+      content,
+    );
+  };
 
   const isLoading =
     isRoomsLoading || isRoomLoading;
@@ -129,11 +120,15 @@ export const useMessagesLayout = () => {
     currentRoom,
     messages,
     conceptMap,
-    sendTextMessage,
+    sendTextMessage: handleSendTextMessage,
     messagesEndRef,
     scrollContainerRef,
     loadingMore,
     isRoomsLoading,
     isLoading,
+    loadMore,
+    hasMore,
+    messagesRef,
+    totalUnread,
   };
 };

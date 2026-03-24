@@ -1,10 +1,9 @@
+import dayjs from 'dayjs';
+
 export const formatDateVN = (dateStr: string) => {
-  const date = new Date(dateStr);
+  const date = dayjs(dateStr);
 
-  const day = String(date.getDate()).padStart(2, '0');
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const year = String(date.getFullYear());
+  if (!date.isValid()) return 'NAN';
 
-  return `${day}/${month}/${year}`;
+  return date.format('DD/MM/YYYY');
 };
-

@@ -4,7 +4,6 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { DEFAULT_IMAGES } from '@shared/constants';
 import { getSafeImage } from '@shared/utils/safeImage';
 import { useImageSlider } from '@features/concept/hooks/useImageSlider';
-import { formatDateVN } from '@shared/utils/formatDateVN';
 
 interface ConceptCardProps {
   title: string;
@@ -85,7 +84,7 @@ const ConceptCard = ({
         <div className="flex items-center justify-between">
           <Badge label={category} color="pink" size="sm" />
           <Text lineClamp={1} variant="caption" color="muted">
-            {formatDateVN(date)}
+            {date}
           </Text>
         </div>
 
